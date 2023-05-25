@@ -14,7 +14,7 @@ type Simple struct {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	simple := Simple{"Dima", "Hello", r.Host} // "Dima" is now the Name field
+	simple := Simple{"Dima", "Hello", r.Host} 
 
 	jsonOutput, _ := json.Marshal(simple)
 
