@@ -28,12 +28,6 @@ jobs:
       run: |
         ssh ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'if systemctl --all --state=running | grep -q main; then sudo systemctl stop main; fi'
         scp ./main ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.USERNAME }}
-
-        ssh ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'chmod +x /home/${{ secrets.USERNAME }}/main'
-        ssh ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} "echo '[Unit]\nDescription=My Go App\nAfter=network.target\n\n[Service]\nExecStart=/home/${{ secrets.USERNAME }}/main\nUser=${{ secrets.USERNAME }}\nRestart=always\nRestartSec=5\n\n[Install]\nWantedBy=multi-user.target' > main.service"
-        ssh ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'sudo mv main.service /etc/systemd/system/main.service'
-        ssh ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'sudo systemctl daemon-reload'
-        ssh ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'sudo systemctl enable main'
         ssh ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'sudo systemctl start main'
 
     - name: Archive production artifacts
