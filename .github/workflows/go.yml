@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: go_deployer
 
 on:
   push:
@@ -24,10 +24,25 @@ jobs:
     - name: Build
       run: go build ./main.go
 
+    - name: Deploy
+      run: |
+        ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
+        chmod 600 id_rsa
+
+        ssh -i id_rsa ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'if systemctl --all --state=running | grep -q main; then sudo systemctl stop main; fi'
+        scp -i id_rsa ./main ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.USERNAME }}
+
+        ssh -i id_rsa ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'chmod +x /home/${{ secrets.USERNAME }}/main'
+        ssh -i id_rsa ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} "echo '[Unit]\nDescription=My Go App\nAfter=network.target\n\n[Service]\nExecStart=/home/${{ secrets.USERNAME }}/main\nUser=${{ secrets.USERNAME }}\nRestart=always\nRestartSec=5\n\n[Install]\nWantedBy=multi-user.target' > main.service"
+        ssh -i id_rsa ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'sudo mv main.service /etc/systemd/system/main.service'
+        ssh -i id_rsa ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'sudo systemctl daemon-reload'
+        ssh -i id_rsa ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'sudo systemctl enable main'
+        ssh -i id_rsa ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'sudo systemctl start main'
+        rm id_rsa
+
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
       with:
         name: main
         path: ./main
-      env:
-        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
