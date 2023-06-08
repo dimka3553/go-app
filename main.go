@@ -22,7 +22,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	fmt.Println("Server started on port 80")
+	fmt.Println("Server started on port 8080")
 	http.HandleFunc("/api", handler)
-	log.Fatal(http.ListenAndServe(":80", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
