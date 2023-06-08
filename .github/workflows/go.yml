@@ -26,6 +26,8 @@ jobs:
 
     - name: Deploy
       run: |
+        eval "$(ssh-agent -s)"
+        ssh-add - <<< "${DEPLOY_KEY}"
         ssh ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'if systemctl --all --state=running | grep -q main; then sudo systemctl stop main; fi'
         scp ./main ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.USERNAME }}
         ssh ${{ secrets.USERNAME }}@${{ secrets.SERVER_IP }} 'sudo systemctl start main'
